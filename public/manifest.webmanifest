@@ -1,0 +1,24 @@
+{
+  "name": "Samplogy Nurse Dashboard",
+  "short_name": "Samplogy Nurse",
+  "description": "Manage laboratory sample requests and results.",
+  "start_url": "/nurse-dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#087f8c",
+  "icons": [
+    {
+      "src": "/samplogy-logo.png",
+      "sizes": "745x596",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
