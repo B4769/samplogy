@@ -1809,10 +1809,9 @@ function LabDashboard() {
           <div className="logo-container">
 
             <img
-              src="/samplogy-logo.png"
-              alt="Samplogy Sample Delivery"
-              className="logo"
-            />
+  src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+  alt="Samplogy"
+/>
 
           </div>
 

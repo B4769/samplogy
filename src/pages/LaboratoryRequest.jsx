@@ -3882,11 +3882,10 @@ function LaboratoryRequest() {
       <header className="lr-header">
 
         <div className="lr-brand">
-          <img
-            src="/samplogy-logo.png"
-            alt="Samplogy Sample Delivery"
-            className="lr-logo"
-          />
+         <img
+  src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+  alt="Samplogy"
+/>
 
           <div className="lr-header-line" />
 

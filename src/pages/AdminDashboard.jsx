@@ -887,11 +887,9 @@ function AdminDashboard() {
       <aside style={styles.sidebar}>
         <div style={styles.logoArea}>
           <img
-            src="/samplogy-logo.png"
-            alt="Samplogy Logo"
-            style={styles.logoImage}
-          />
-
+  src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+  alt="Samplogy"
+/>
           <div>
             <h2 style={styles.logoTitle}>
               Samplogy

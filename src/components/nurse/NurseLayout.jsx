@@ -40,9 +40,9 @@ function NurseLayout({
 
           <div className="mobile-brand">
             <img
-              src="/samplogy-logo.png"
-              alt="Samplogy"
-            />
+  src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+  alt="Samplogy"
+/>
 
             <div>
               <strong>

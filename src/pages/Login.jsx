@@ -9,7 +9,6 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -28,11 +27,11 @@ function Login() {
     }
 
     try {
-      // =====================================================
-      // 1. SIGN IN WITH SUPABASE AUTH
-      // =====================================================
-
       console.log("Attempting Supabase login...");
+
+      // =====================================================
+      // 1. SIGN IN
+      // =====================================================
 
       const { data: authData, error: authError } =
         await supabase.auth.signInWithPassword({
@@ -44,7 +43,7 @@ function Login() {
         console.error("Login error:", authError);
 
         setError(
-          authError.message || "Invalid login credentials."
+          authError.message || "Invalid email or password."
         );
 
         setLoading(false);
@@ -81,6 +80,8 @@ function Login() {
         return;
       }
 
+      console.log("Supabase session created successfully.");
+
       // =====================================================
       // 3. LOAD PROFILE
       // =====================================================
@@ -107,6 +108,8 @@ function Login() {
         return;
       }
 
+      console.log("Profile loaded:", profile);
+
       // =====================================================
       // 4. NORMALIZE ROLE AND STATUS
       // =====================================================
@@ -123,7 +126,7 @@ function Login() {
       console.log("User status:", status);
 
       // =====================================================
-      // 5. MOBILE APPLICATION = NURSE PORTAL
+      // 5. MOBILE APP = NURSE ONLY
       // =====================================================
 
       if (
@@ -157,7 +160,7 @@ function Login() {
       }
 
       // =====================================================
-      // 7. PENDING ACCOUNT
+      // 7. PENDING
       // =====================================================
 
       if (
@@ -181,7 +184,7 @@ function Login() {
         }
 
         setError(
-          "Your profile is waiting for administrator approval."
+          "Your profile has been submitted and is waiting for administrator approval."
         );
 
         await supabase.auth.signOut();
@@ -208,7 +211,7 @@ function Login() {
       }
 
       // =====================================================
-      // 9. ACTIVE ACCOUNT CHECK
+      // 9. ACTIVE CHECK
       // =====================================================
 
       if (status !== "active") {
@@ -232,7 +235,7 @@ function Login() {
       );
 
       // =====================================================
-      // 11. COMPLETE PROFILE
+      // 11. FIRST LOGIN / INCOMPLETE PROFILE
       // =====================================================
 
       if (
@@ -247,10 +250,12 @@ function Login() {
       }
 
       // =====================================================
-      // 12. ROLE-BASED NAVIGATION
+      // 12. ROLE NAVIGATION
       // =====================================================
 
       if (role === "admin") {
+        console.log("Redirecting to Admin Dashboard...");
+
         navigate("/admin", {
           replace: true,
         });
@@ -259,6 +264,8 @@ function Login() {
       }
 
       if (role === "nurse") {
+        console.log("Redirecting to Nurse Dashboard...");
+
         navigate("/nurse-dashboard", {
           replace: true,
         });
@@ -271,6 +278,10 @@ function Login() {
         role === "lab" ||
         role === "lab_technician"
       ) {
+        console.log(
+          "Redirecting to Laboratory Dashboard..."
+        );
+
         navigate("/laboratory", {
           replace: true,
         });
@@ -302,789 +313,661 @@ function Login() {
   };
 
   return (
-    <div style={styles.page}>
-
+    <>
       {/* =====================================================
-          LEFT BRAND PANEL
+          RESPONSIVE LOGIN STYLES
       ===================================================== */}
 
-      <section style={styles.brandPanel}>
+      <style>{`
+        * {
+          box-sizing: border-box;
+        }
 
-        <div style={styles.brandOverlay} />
+        .login-page {
+          min-height: 100vh;
+          width: 100%;
+          display: grid;
+          grid-template-columns: minmax(360px, 0.85fr) minmax(420px, 1.15fr);
+          background: #f4f7f9;
+          font-family:
+            Inter,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Arial,
+            sans-serif;
+          overflow-x: hidden;
+        }
 
-        <div style={styles.brandContent}>
+        /* =====================================================
+           BRAND PANEL
+        ===================================================== */
 
-          <img
-            src="/samplogy-logo.png"
-            alt="Samplogy"
-            style={styles.logo}
-          />
+        .login-brand {
+          min-height: 100vh;
+          padding: 60px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+          background:
+            linear-gradient(
+              145deg,
+              #075e68 0%,
+              #087f8c 55%,
+              #0c96a3 100%
+            );
+        }
 
-          <div style={styles.brandTag}>
-            SAMPLE DELIVERY PLATFORM
-          </div>
+        .brand-inner {
+          width: 100%;
+          max-width: 470px;
+        }
 
-          <h1 style={styles.brandTitle}>
-            Smarter sample
-            <br />
-            management.
-          </h1>
+        .brand-logo {
+          display: block;
+          width: 220px;
+          max-width: 100%;
+          height: auto;
+          object-fit: contain;
+          margin-bottom: 42px;
+        }
 
-          <p style={styles.brandDescription}>
-            Samplogy connects healthcare teams,
-            laboratories and administrators through
-            one secure laboratory workflow.
-          </p>
+        .brand-kicker {
+          margin: 0 0 14px;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 4px;
+          text-transform: uppercase;
+          opacity: 0.82;
+        }
 
-          <div style={styles.divider} />
+        .brand-heading {
+          margin: 0;
+          font-size: clamp(38px, 4vw, 58px);
+          line-height: 1.05;
+          font-weight: 800;
+          letter-spacing: -2px;
+        }
 
-          <div style={styles.brandPoints}>
+        .brand-description {
+          max-width: 420px;
+          margin: 24px 0 0;
+          font-size: 16px;
+          line-height: 1.8;
+          color: rgba(255, 255, 255, 0.84);
+        }
 
-            <div style={styles.brandPoint}>
-              <span style={styles.pointIcon}>✓</span>
-              <span>Secure healthcare workflow</span>
-            </div>
+        .brand-divider {
+          width: 64px;
+          height: 4px;
+          margin-top: 30px;
+          border-radius: 10px;
+          background: #ffffff;
+          opacity: 0.9;
+        }
 
-            <div style={styles.brandPoint}>
-              <span style={styles.pointIcon}>✓</span>
-              <span>Connected laboratory operations</span>
-            </div>
+        /* =====================================================
+           LOGIN AREA
+        ===================================================== */
 
-            <div style={styles.brandPoint}>
-              <span style={styles.pointIcon}>✓</span>
-              <span>Reliable sample management</span>
-            </div>
+        .login-area {
+          min-height: 100vh;
+          padding: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f4f7f9;
+        }
 
-          </div>
+        .login-card {
+          width: 100%;
+          max-width: 510px;
+          padding: 48px;
+          background: #ffffff;
+          border: 1px solid #e5ebef;
+          border-radius: 24px;
+          box-shadow:
+            0 20px 60px rgba(15, 23, 42, 0.08);
+        }
 
-          <div style={styles.brandBottom}>
-            <span style={styles.statusDot} />
-            Secure healthcare platform
-          </div>
+        /* =====================================================
+           MOBILE LOGO
+        ===================================================== */
 
-        </div>
+        .mobile-logo-wrapper {
+          display: none;
+          text-align: center;
+          margin-bottom: 28px;
+        }
 
-      </section>
+        .mobile-logo {
+          width: 155px;
+          max-width: 70%;
+          height: auto;
+        }
 
-      {/* =====================================================
-          RIGHT LOGIN PANEL
-      ===================================================== */}
+        /* =====================================================
+           HEADING
+        ===================================================== */
 
-      <section style={styles.loginPanel}>
+        .login-kicker {
+          margin: 0 0 10px;
+          color: #087f8c;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 4px;
+          text-transform: uppercase;
+        }
 
-        <div style={styles.loginContainer}>
+        .login-title {
+          margin: 0;
+          color: #14233b;
+          font-size: 36px;
+          line-height: 1.15;
+          font-weight: 800;
+          letter-spacing: -1px;
+        }
 
-          {/* MOBILE LOGO */}
+        .login-subtitle {
+          margin: 12px 0 32px;
+          color: #718096;
+          font-size: 15px;
+          line-height: 1.6;
+        }
 
-          <div style={styles.mobileLogoContainer}>
+        /* =====================================================
+           FORM
+        ===================================================== */
+
+        .login-form-group {
+          margin-bottom: 22px;
+        }
+
+        .login-label {
+          display: block;
+          margin-bottom: 9px;
+          color: #27364d;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .login-input-wrapper {
+          position: relative;
+          width: 100%;
+        }
+
+        .login-input {
+          width: 100%;
+          height: 54px;
+          padding: 0 16px;
+          border: 1px solid #d8e1e7;
+          border-radius: 12px;
+          outline: none;
+          background: #ffffff;
+          color: #172033;
+          font-size: 15px;
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .login-input:focus {
+          border-color: #087f8c;
+          box-shadow:
+            0 0 0 4px rgba(8, 127, 140, 0.10);
+        }
+
+        .password-input {
+          padding-right: 72px;
+        }
+
+        .show-password {
+          position: absolute;
+          top: 50%;
+          right: 8px;
+          transform: translateY(-50%);
+          border: none;
+          background: transparent;
+          color: #087f8c;
+          padding: 8px;
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        /* =====================================================
+           ERROR
+        ===================================================== */
+
+        .login-error {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+          margin-bottom: 20px;
+          padding: 13px 14px;
+          border: 1px solid #fecaca;
+          border-radius: 12px;
+          background: #fff5f5;
+          color: #b42318;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        .error-icon {
+          width: 21px;
+          height: 21px;
+          min-width: 21px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+          background: #dc2626;
+          color: #ffffff;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .error-title {
+          display: block;
+          margin-bottom: 2px;
+          font-weight: 800;
+        }
+
+        /* =====================================================
+           BUTTON
+        ===================================================== */
+
+        .login-button {
+          width: 100%;
+          height: 54px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          border: none;
+          border-radius: 12px;
+          background:
+            linear-gradient(
+              135deg,
+              #087f8c,
+              #066974
+            );
+          color: #ffffff;
+          font-size: 15px;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow:
+            0 8px 20px rgba(8, 127, 140, 0.22);
+          transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+        }
+
+        .login-button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow:
+            0 12px 25px rgba(8, 127, 140, 0.28);
+        }
+
+        .login-button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .button-arrow {
+          font-size: 19px;
+          line-height: 1;
+        }
+
+        .login-security {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          margin-top: 26px;
+          padding-top: 20px;
+          border-top: 1px solid #edf1f3;
+          color: #8795a1;
+          font-size: 11px;
+          text-align: center;
+        }
+
+        .login-footer {
+          margin-top: 18px;
+          color: #a0acb5;
+          font-size: 11px;
+          text-align: center;
+        }
+
+        /* =====================================================
+           TABLET
+        ===================================================== */
+
+        @media (max-width: 900px) {
+          .login-page {
+            grid-template-columns: 1fr;
+          }
+
+          .login-brand {
+            display: none;
+          }
+
+          .login-area {
+            min-height: 100vh;
+            padding: 30px 20px;
+          }
+
+          .login-card {
+            max-width: 500px;
+          }
+
+          .mobile-logo-wrapper {
+            display: block;
+          }
+        }
+
+        /* =====================================================
+           PHONE
+        ===================================================== */
+
+        @media (max-width: 600px) {
+          .login-area {
+            min-height: 100vh;
+            padding: 20px 14px;
+            align-items: flex-start;
+          }
+
+          .login-card {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 30px 22px;
+            border-radius: 18px;
+            box-shadow:
+              0 10px 35px rgba(15, 23, 42, 0.07);
+          }
+
+          .mobile-logo-wrapper {
+            margin-bottom: 24px;
+          }
+
+          .mobile-logo {
+            width: 135px;
+          }
+
+          .login-kicker {
+            font-size: 10px;
+            letter-spacing: 3px;
+          }
+
+          .login-title {
+            font-size: 30px;
+            letter-spacing: -0.7px;
+          }
+
+          .login-subtitle {
+            margin-bottom: 26px;
+            font-size: 14px;
+          }
+
+          .login-form-group {
+            margin-bottom: 18px;
+          }
+
+          .login-input {
+            height: 52px;
+            font-size: 16px;
+          }
+
+          .login-button {
+            height: 52px;
+          }
+
+          .login-security {
+            font-size: 10px;
+          }
+        }
+
+        /* =====================================================
+           SMALL PHONE
+        ===================================================== */
+
+        @media (max-width: 380px) {
+          .login-area {
+            padding: 12px 10px;
+          }
+
+          .login-card {
+            padding: 25px 18px;
+          }
+
+          .mobile-logo {
+            width: 120px;
+          }
+
+          .login-title {
+            font-size: 27px;
+          }
+        }
+      `}</style>
+
+      <div className="login-page">
+
+        {/* =====================================================
+            BRAND PANEL
+        ===================================================== */}
+
+        <section className="login-brand">
+          <div className="brand-inner">
+
             <img
-              src="/samplogy-logo.png"
+              src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
               alt="Samplogy"
-              style={styles.mobileLogo}
+              className="brand-logo"
             />
-          </div>
 
-          {/* LOGIN HEADER */}
+            <p className="brand-kicker">
+              Sample Delivery Platform
+            </p>
 
-          <div style={styles.header}>
+            <h1 className="brand-heading">
+              Smarter healthcare.
+              <br />
+              Better connected.
+            </h1>
 
-            <span style={styles.welcomeLabel}>
-              WELCOME BACK
-            </span>
+            <div className="brand-divider" />
 
-            <h2 style={styles.title}>
-              Sign in to your account
-            </h2>
-
-            <p style={styles.subtitle}>
-              Enter your credentials to access
-              the Samplogy platform.
+            <p className="brand-description">
+              Samplogy connects healthcare teams,
+              laboratories and administrators through
+              one secure sample delivery and laboratory
+              management platform.
             </p>
 
           </div>
+        </section>
 
-          {/* FORM */}
+        {/* =====================================================
+            LOGIN AREA
+        ===================================================== */}
 
-          <form onSubmit={handleLogin}>
+        <main className="login-area">
 
-            {/* EMAIL */}
+          <div className="login-card">
 
-            <div style={styles.formGroup}>
+            {/* MOBILE LOGO */}
 
-              <label style={styles.label}>
-                Email address
-              </label>
-
-              <div style={styles.inputWrapper}>
-
-                <span style={styles.inputIcon}>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <rect
-                      x="3"
-                      y="5"
-                      width="18"
-                      height="14"
-                      rx="2"
-                    />
-                    <path d="m3 7 9 6 9-6" />
-                  </svg>
-                </span>
-
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) =>
-                    setEmail(e.target.value)
-                  }
-                  placeholder="Enter your email"
-                  style={styles.input}
-                  autoComplete="email"
-                  required
-                />
-
-              </div>
-
+            <div className="mobile-logo-wrapper">
+              <img
+                src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+                alt="Samplogy"
+                className="mobile-logo"
+              />
             </div>
 
-            {/* PASSWORD */}
-
-            <div style={styles.formGroup}>
-
-              <label style={styles.label}>
-                Password
-              </label>
-
-              <div style={styles.inputWrapper}>
-
-                <span style={styles.inputIcon}>
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  >
-                    <rect
-                      x="4"
-                      y="10"
-                      width="16"
-                      height="11"
-                      rx="2"
-                    />
-                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-                  </svg>
-                </span>
-
-                <input
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
-                  value={password}
-                  onChange={(e) =>
-                    setPassword(e.target.value)
-                  }
-                  placeholder="Enter your password"
-                  style={styles.passwordInput}
-                  autoComplete="current-password"
-                  required
-                />
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowPassword(
-                      (current) => !current
-                    )
-                  }
-                  style={styles.showButton}
-                >
-                  {showPassword ? (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M3 3l18 18" />
-                      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-                      <path d="M9.9 4.3A10.8 10.8 0 0 1 12 4c5 0 8.7 4 10 8-0.4 1.2-1.1 2.5-2 3.6" />
-                      <path d="M6.6 6.6C4.7 7.9 3.4 10 2 12c1.3 4 5 8 10 8 1 0 2-.2 2.9-.5" />
-                    </svg>
-                  ) : (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                    >
-                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="3"
-                      />
-                    </svg>
-                  )}
-                </button>
-
-              </div>
-
-            </div>
-
-            {/* ERROR */}
-
-            {error && (
-              <div style={styles.errorBox}>
-
-                <div style={styles.errorIcon}>
-                  !
-                </div>
-
-                <div style={styles.errorContent}>
-
-                  <strong style={styles.errorTitle}>
-                    Sign in failed
-                  </strong>
-
-                  <span style={styles.errorMessage}>
-                    {error}
-                  </span>
-
-                </div>
-
-              </div>
-            )}
-
-            {/* LOGIN BUTTON */}
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                ...styles.loginButton,
-                opacity: loading ? 0.7 : 1,
-                cursor: loading
-                  ? "not-allowed"
-                  : "pointer",
-              }}
-            >
-
-              {loading ? (
-                <>
-                  <span style={styles.spinner} />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Sign in
-                  <span style={styles.arrow}>
-                    →
-                  </span>
-                </>
-              )}
-
-            </button>
-
-          </form>
-
-          {/* SECURITY */}
-
-          <div style={styles.security}>
-
-            <div style={styles.securityIcon}>
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <rect
-                  x="4"
-                  y="10"
-                  width="16"
-                  height="11"
-                  rx="2"
-                />
-                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-              </svg>
-            </div>
+            {/* HEADING */}
 
             <div>
-              <strong style={styles.securityTitle}>
-                Secure access
-              </strong>
+              <p className="login-kicker">
+                Welcome back
+              </p>
 
-              <span style={styles.securityText}>
-                Your account information is protected.
+              <h2 className="login-title">
+                Sign in to your account
+              </h2>
+
+              <p className="login-subtitle">
+                Enter your credentials to access
+                the Samplogy platform.
+              </p>
+            </div>
+
+            {/* =================================================
+                FORM
+            ================================================= */}
+
+            <form onSubmit={handleLogin}>
+
+              {/* EMAIL */}
+
+              <div className="login-form-group">
+
+                <label className="login-label">
+                  Email address
+                </label>
+
+                <div className="login-input-wrapper">
+
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setError("");
+                    }}
+                    placeholder="you@example.com"
+                    className="login-input"
+                    autoComplete="email"
+                    required
+                  />
+
+                </div>
+
+              </div>
+
+              {/* PASSWORD */}
+
+              <div className="login-form-group">
+
+                <label className="login-label">
+                  Password
+                </label>
+
+                <div className="login-input-wrapper">
+
+                  <input
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError("");
+                    }}
+                    placeholder="Enter your password"
+                    className="login-input password-input"
+                    autoComplete="current-password"
+                    required
+                  />
+
+                  <button
+                    type="button"
+                    className="show-password"
+                    onClick={() =>
+                      setShowPassword(
+                        (current) => !current
+                      )
+                    }
+                  >
+                    {showPassword
+                      ? "Hide"
+                      : "Show"}
+                  </button>
+
+                </div>
+
+              </div>
+
+              {/* ERROR */}
+
+              {error && (
+                <div className="login-error">
+
+                  <div className="error-icon">
+                    !
+                  </div>
+
+                  <div>
+                    <span className="error-title">
+                      Sign in failed
+                    </span>
+
+                    <span>
+                      {error}
+                    </span>
+                  </div>
+
+                </div>
+              )}
+
+              {/* BUTTON */}
+
+              <button
+                type="submit"
+                className="login-button"
+                disabled={loading}
+              >
+                {loading ? (
+                  "Signing in..."
+                ) : (
+                  <>
+                    Sign in
+                    <span className="button-arrow">
+                      →
+                    </span>
+                  </>
+                )}
+              </button>
+
+            </form>
+
+            {/* SECURITY */}
+
+            <div className="login-security">
+              <span>🔒</span>
+
+              <span>
+                Secure healthcare management platform
               </span>
             </div>
 
-          </div>
+            {/* FOOTER */}
 
-          {/* FOOTER */}
-
-          <div style={styles.footer}>
-            <span>
+            <div className="login-footer">
               © {new Date().getFullYear()} Samplogy
-            </span>
+            </div>
 
-            <span style={styles.footerDot}>
-              •
-            </span>
-
-            <span>
-              Sample Delivery & Laboratory Management
-            </span>
           </div>
 
-        </div>
+        </main>
 
-      </section>
-
-    </div>
+      </div>
+    </>
   );
 }
-
-const styles = {
-  // =====================================================
-  // PAGE
-  // =====================================================
-
-  page: {
-    minHeight: "100vh",
-    display: "grid",
-    gridTemplateColumns: "48% 52%",
-    background: "#f7fafb",
-    fontFamily:
-      "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif",
-  },
-
-  // =====================================================
-  // BRAND PANEL
-  // =====================================================
-
-  brandPanel: {
-    minHeight: "100vh",
-    position: "relative",
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-    padding: "70px",
-    boxSizing: "border-box",
-    color: "#ffffff",
-    background:
-      "linear-gradient(145deg, #064d56 0%, #076d77 48%, #098995 100%)",
-  },
-
-  brandOverlay: {
-    position: "absolute",
-    width: "620px",
-    height: "620px",
-    borderRadius: "50%",
-    border: "1px solid rgba(255,255,255,0.08)",
-    right: "-330px",
-    bottom: "-250px",
-  },
-
-  brandContent: {
-    width: "100%",
-    maxWidth: "520px",
-    position: "relative",
-    zIndex: 2,
-  },
-
-  logo: {
-    width: "190px",
-    maxWidth: "100%",
-    height: "auto",
-    objectFit: "contain",
-    marginBottom: "45px",
-    filter:
-      "brightness(0) invert(1) drop-shadow(0 7px 18px rgba(0,0,0,0.12))",
-  },
-
-  brandTag: {
-    fontSize: "10px",
-    fontWeight: "800",
-    letterSpacing: "2px",
-    opacity: 0.65,
-    marginBottom: "18px",
-  },
-
-  brandTitle: {
-    margin: 0,
-    fontSize: "52px",
-    lineHeight: 1.08,
-    letterSpacing: "-2px",
-    fontWeight: "800",
-  },
-
-  brandDescription: {
-    maxWidth: "470px",
-    margin: "24px 0 0",
-    fontSize: "16px",
-    lineHeight: 1.75,
-    opacity: 0.76,
-  },
-
-  divider: {
-    width: "55px",
-    height: "3px",
-    borderRadius: "10px",
-    background: "#ffffff",
-    opacity: 0.8,
-    margin: "32px 0",
-  },
-
-  brandPoints: {
-    display: "grid",
-    gap: "14px",
-  },
-
-  brandPoint: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    fontSize: "13px",
-    fontWeight: "500",
-    opacity: 0.86,
-  },
-
-  pointIcon: {
-    width: "25px",
-    height: "25px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "rgba(255,255,255,0.12)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    fontSize: "11px",
-    fontWeight: "800",
-  },
-
-  brandBottom: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginTop: "55px",
-    fontSize: "11px",
-    opacity: 0.55,
-  },
-
-  statusDot: {
-    width: "7px",
-    height: "7px",
-    borderRadius: "50%",
-    background: "#8ee7df",
-    boxShadow: "0 0 0 4px rgba(142,231,223,0.08)",
-  },
-
-  // =====================================================
-  // LOGIN PANEL
-  // =====================================================
-
-  loginPanel: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "50px 70px",
-    boxSizing: "border-box",
-    background: "#f8fbfc",
-  },
-
-  loginContainer: {
-    width: "100%",
-    maxWidth: "470px",
-  },
-
-  mobileLogoContainer: {
-    display: "none",
-    textAlign: "center",
-    marginBottom: "35px",
-  },
-
-  mobileLogo: {
-    width: "150px",
-    height: "auto",
-  },
-
-  // =====================================================
-  // HEADER
-  // =====================================================
-
-  header: {
-    marginBottom: "34px",
-  },
-
-  welcomeLabel: {
-    display: "inline-block",
-    color: "#087f8c",
-    fontSize: "10px",
-    fontWeight: "850",
-    letterSpacing: "1.8px",
-    marginBottom: "13px",
-  },
-
-  title: {
-    margin: 0,
-    color: "#162936",
-    fontSize: "34px",
-    lineHeight: 1.2,
-    fontWeight: "800",
-    letterSpacing: "-0.8px",
-  },
-
-  subtitle: {
-    margin: "11px 0 0",
-    color: "#7b8b94",
-    fontSize: "14px",
-    lineHeight: 1.6,
-  },
-
-  // =====================================================
-  // FORM
-  // =====================================================
-
-  formGroup: {
-    marginBottom: "21px",
-  },
-
-  label: {
-    display: "block",
-    marginBottom: "8px",
-    color: "#31434f",
-    fontSize: "12px",
-    fontWeight: "750",
-  },
-
-  inputWrapper: {
-    position: "relative",
-    width: "100%",
-  },
-
-  inputIcon: {
-    position: "absolute",
-    left: "15px",
-    top: "50%",
-    transform: "translateY(-50%)",
-    color: "#9aaab1",
-    display: "flex",
-    alignItems: "center",
-    pointerEvents: "none",
-    zIndex: 2,
-  },
-
-  input: {
-    width: "100%",
-    height: "54px",
-    boxSizing: "border-box",
-    border: "1px solid #dce5e8",
-    borderRadius: "11px",
-    padding: "0 16px 0 44px",
-    background: "#ffffff",
-    color: "#172b38",
-    fontSize: "14px",
-    outline: "none",
-    transition:
-      "border-color 0.2s, box-shadow 0.2s",
-  },
-
-  passwordInput: {
-    width: "100%",
-    height: "54px",
-    boxSizing: "border-box",
-    border: "1px solid #dce5e8",
-    borderRadius: "11px",
-    padding: "0 55px 0 44px",
-    background: "#ffffff",
-    color: "#172b38",
-    fontSize: "14px",
-    outline: "none",
-    transition:
-      "border-color 0.2s, box-shadow 0.2s",
-  },
-
-  showButton: {
-    position: "absolute",
-    right: "12px",
-    top: "50%",
-    transform: "translateY(-50%)",
-    width: "32px",
-    height: "32px",
-    border: "none",
-    background: "transparent",
-    color: "#82949c",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    padding: 0,
-  },
-
-  // =====================================================
-  // ERROR
-  // =====================================================
-
-  errorBox: {
-    display: "flex",
-    gap: "11px",
-    alignItems: "flex-start",
-    padding: "13px 14px",
-    marginBottom: "18px",
-    borderRadius: "11px",
-    border: "1px solid #f1d2d2",
-    background: "#fff8f8",
-    color: "#a52a2a",
-  },
-
-  errorIcon: {
-    width: "21px",
-    height: "21px",
-    minWidth: "21px",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#d83b3b",
-    color: "#ffffff",
-    fontSize: "11px",
-    fontWeight: "900",
-  },
-
-  errorContent: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "2px",
-    fontSize: "12px",
-    lineHeight: 1.45,
-  },
-
-  errorTitle: {
-    fontSize: "12px",
-    fontWeight: "800",
-  },
-
-  errorMessage: {
-    opacity: 0.88,
-  },
-
-  // =====================================================
-  // BUTTON
-  // =====================================================
-
-  loginButton: {
-    width: "100%",
-    height: "54px",
-    border: "none",
-    borderRadius: "11px",
-    background:
-      "linear-gradient(135deg, #087f8c 0%, #066c76 100%)",
-    color: "#ffffff",
-    fontSize: "14px",
-    fontWeight: "800",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "11px",
-    boxShadow:
-      "0 9px 24px rgba(8,127,140,0.20)",
-  },
-
-  arrow: {
-    fontSize: "19px",
-    lineHeight: 1,
-    marginTop: "-1px",
-  },
-
-  spinner: {
-    width: "16px",
-    height: "16px",
-    border: "2px solid rgba(255,255,255,0.35)",
-    borderTopColor: "#ffffff",
-    borderRadius: "50%",
-    display: "inline-block",
-    animation:
-      "samplogySpinner 0.8s linear infinite",
-  },
-
-  // =====================================================
-  // SECURITY
-  // =====================================================
-
-  security: {
-    display: "flex",
-    alignItems: "center",
-    gap: "11px",
-    marginTop: "28px",
-    padding: "14px",
-    borderRadius: "11px",
-    border: "1px solid #e9eff1",
-    background: "#ffffff",
-  },
-
-  securityIcon: {
-    width: "30px",
-    height: "30px",
-    minWidth: "30px",
-    borderRadius: "8px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#edf8f9",
-    color: "#087f8c",
-  },
-
-  securityTitle: {
-    display: "block",
-    color: "#42545e",
-    fontSize: "11px",
-    fontWeight: "800",
-    marginBottom: "2px",
-  },
-
-  securityText: {
-    display: "block",
-    color: "#94a1a8",
-    fontSize: "10px",
-  },
-
-  // =====================================================
-  // FOOTER
-  // =====================================================
-
-  footer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexWrap: "wrap",
-    gap: "7px",
-    marginTop: "27px",
-    color: "#a1adb3",
-    fontSize: "10px",
-    textAlign: "center",
-  },
-
-  footerDot: {
-    color: "#cbd3d6",
-  },
-};
 
 export default Login;
