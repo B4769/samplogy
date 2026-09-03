@@ -1107,7 +1107,7 @@ function RegisterPatient() {
         <div className="brand-area">
 
           <img
-            src="/samplogy-logo.png"
+           src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
             alt="Samplogy Sample Delivery"
             className="logo"
           />
