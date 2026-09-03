@@ -101,13 +101,13 @@ function ChangePassword() {
       // =====================================================
 
       setSuccess(
-        "Password changed successfully. Please continue to complete your profile."
+       "Password changed successfully. Redirecting to your dashboard..."
       );
 
       // Give the user a moment to see the success message.
-      setTimeout(() => {
-        navigate("/complete-profile", { replace: true });
-      }, 800);
+     setTimeout(() => {
+  navigate("/nurse-dashboard", { replace: true });
+}, 800);
     } catch (err) {
       console.error("Change password error:", err);
 
