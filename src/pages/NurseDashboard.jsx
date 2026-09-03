@@ -337,6 +337,9 @@ async function fetchMyPayments(nurseId) {
 
 function NurseDashboard() {
   const navigate = useNavigate();
+  // Styling now lives in NurseDashboard.css. This preserves the old inline CSS
+  // temporarily without rendering it, so it can be removed safely in a later cleanup.
+  const legacyStylesEnabled = false;
 
   const [requests, setRequests] = useState([]);
   const [payments, setPayments] = useState([]);
@@ -345,6 +348,7 @@ function NurseDashboard() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [nurseName, setNurseName] = useState("Nurse");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   /* =======================================================
      LOAD DATA
@@ -641,6 +645,32 @@ function NurseDashboard() {
   };
 
   /* =======================================================
+     SIGN OUT
+  ======================================================= */
+
+  const handleSignOut = async () => {
+    try {
+      const { error } =
+        await supabase.auth.signOut();
+
+      if (error) {
+        console.error(
+          "Supabase sign out error:",
+          error
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Sign out error:",
+        error
+      );
+    }
+
+    localStorage.removeItem("currentUser");
+    navigate("/");
+  };
+
+  /* =======================================================
      RETRY
   ======================================================= */
 
@@ -661,13 +691,1794 @@ function NurseDashboard() {
     }
   );
 
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   /* =======================================================
      RENDER
   ======================================================= */
 
   return (
     <div className="nurse-dashboard">
-      <div className="nurse-dashboard-page">
+      {legacyStylesEnabled && <style>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          margin: 0;
+          background: #f7f9fc;
+          color: #172033;
+          font-family:
+            Inter,
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Roboto,
+            Arial,
+            sans-serif;
+        }
+
+        button,
+        input {
+          font-family: inherit;
+        }
+
+        .nurse-dashboard {
+          min-height: 100vh;
+          display: flex;
+          background: #f7f9fc;
+        }
+
+        /* ================= SIDEBAR ================= */
+
+        .sidebar {
+          width: 265px;
+          position: fixed;
+          inset: 0 auto 0 0;
+          background: #fff;
+          border-right: 1px solid #e7edf3;
+          padding: 24px 17px;
+          display: flex;
+          flex-direction: column;
+          z-index: 20;
+        }
+
+        .logo-container {
+          height: 82px;
+          padding: 0 10px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-bottom: 1px solid #eef1f4;
+          margin-bottom: 23px;
+        }
+
+        .logo {
+          width: 190px;
+          max-height: 75px;
+          object-fit: contain;
+        }
+
+        .menu-heading {
+          padding: 0 12px 10px;
+          color: #9aa4b2;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 1.2px;
+        }
+
+        .nav-button {
+          width: 100%;
+          border: 0;
+          background: transparent;
+          color: #667085;
+          padding: 12px 13px;
+          margin-bottom: 4px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          gap: 13px;
+          cursor: pointer;
+          font-size: 13px;
+          font-weight: 550;
+          text-align: left;
+          transition: .2s ease;
+        }
+
+        .nav-button:hover {
+          background: #f1f8fa;
+          color: #087f8c;
+        }
+
+        .nav-button.active {
+          background: #e8f7f8;
+          color: #087f8c;
+          font-weight: 750;
+        }
+
+        .nav-icon {
+          width: 21px;
+          height: 21px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+          flex-shrink: 0;
+        }
+
+        .sidebar-spacer {
+          flex: 1;
+        }
+
+        .profile {
+          border-top: 1px solid #edf0f4;
+          padding: 17px 7px 4px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .avatar {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          background: linear-gradient(
+            135deg,
+            #0b5cab,
+            #08a7a1
+          );
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 13px;
+          font-weight: 800;
+          flex-shrink: 0;
+        }
+
+        .profile-name {
+          margin: 0;
+          color: #273449;
+          font-size: 12px;
+          font-weight: 750;
+        }
+
+        .profile-role {
+          margin: 3px 0 0;
+          color: #98a2b3;
+          font-size: 10px;
+        }
+
+        /* ================= MAIN ================= */
+
+        .main {
+          width: calc(100% - 265px);
+          margin-left: 265px;
+          padding: 27px 35px 35px;
+        }
+
+        .mobile-topbar,
+        .mobile-menu-overlay,
+        .mobile-drawer-close {
+          display: none;
+        }
+
+        .header {
+          max-width: 1180px;
+          margin: 0 auto 25px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+        }
+
+        .breadcrumb {
+          margin: 0 0 8px;
+          color: #98a2b3;
+          font-size: 12px;
+        }
+
+        .breadcrumb span {
+          color: #087f8c;
+          font-weight: 700;
+        }
+
+        .title {
+          margin: 0;
+          color: #152238;
+          font-size: 32px;
+          line-height: 1.1;
+          font-weight: 800;
+          letter-spacing: -.7px;
+        }
+
+        .subtitle {
+          margin: 8px 0 0;
+          color: #7c8797;
+          font-size: 14px;
+        }
+
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .date {
+          padding: 12px 15px;
+          background: #fff;
+          border: 1px solid #e3e8ed;
+          border-radius: 10px;
+          color: #667085;
+          font-size: 11px;
+        }
+
+        .refresh-button,
+        .header-avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 10px;
+        }
+
+        .refresh-button {
+          border: 1px solid #e3e8ed;
+          background: #fff;
+          color: #667085;
+          cursor: pointer;
+          font-size: 18px;
+        }
+
+        .refresh-button:hover {
+          color: #087f8c;
+          background: #f6fbfb;
+        }
+
+        .header-avatar {
+          background: #0b62b2;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+        }
+
+        /* ================= STATS ================= */
+
+        .stats {
+          max-width: 1180px;
+          margin: 0 auto 20px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 15px;
+        }
+
+        .stat-card {
+          background: #fff;
+          border: 1px solid #e4e9ee;
+          border-radius: 14px;
+          padding: 20px;
+          min-height: 125px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .stat-label {
+          margin: 0;
+          color: #7b8798;
+          font-size: 12px;
+          font-weight: 650;
+        }
+
+        .stat-number {
+          margin: 8px 0 5px;
+          color: #152238;
+          font-size: 32px;
+          font-weight: 800;
+        }
+
+        .stat-description {
+          margin: 0;
+          color: #a0a9b7;
+          font-size: 9px;
+        }
+
+        .stat-icon {
+          width: 47px;
+          height: 47px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 19px;
+          font-weight: 800;
+        }
+
+        .blue {
+          color: #0b5cab;
+          background: #edf5ff;
+        }
+
+        .orange {
+          color: #c77a00;
+          background: #fff5e6;
+        }
+
+        .purple {
+          color: #7056c9;
+          background: #f2efff;
+        }
+
+        .green {
+          color: #087f4f;
+          background: #eaf9f1;
+        }
+
+        /* ================= WELCOME ================= */
+
+        .welcome {
+          max-width: 1180px;
+          margin: 0 auto 20px;
+          position: relative;
+          overflow: hidden;
+          background: linear-gradient(
+            115deg,
+            #07547d,
+            #087f8c 62%,
+            #0aa399
+          );
+          border-radius: 15px;
+          padding: 25px 28px;
+          color: #fff;
+        }
+
+        .welcome-label {
+          margin: 0 0 6px;
+          color: rgba(255,255,255,.72);
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 1px;
+        }
+
+        .welcome h2 {
+          margin: 0;
+          font-size: 21px;
+          font-weight: 800;
+        }
+
+        .welcome p {
+          margin: 8px 0 0;
+          color: rgba(255,255,255,.8);
+          font-size: 12px;
+          line-height: 1.55;
+        }
+
+        /* ================= WORK CARD ================= */
+
+        .work-card {
+          max-width: 1180px;
+          margin: 0 auto;
+          background: #fff;
+          border: 1px solid #e4e9ee;
+          border-radius: 15px;
+          overflow: hidden;
+        }
+
+        .work-header {
+          padding: 21px 23px 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 20px;
+        }
+
+        .work-title {
+          margin: 0;
+          font-size: 18px;
+          color: #172033;
+          font-weight: 800;
+        }
+
+        .work-subtitle {
+          margin: 5px 0 0;
+          color: #98a2b3;
+          font-size: 11px;
+        }
+
+        .view-tabs {
+          display: flex;
+          gap: 6px;
+          background: #f5f7f9;
+          padding: 4px;
+          border-radius: 9px;
+        }
+
+        .tab-button {
+          border: 0;
+          background: transparent;
+          color: #667085;
+          padding: 8px 12px;
+          border-radius: 7px;
+          cursor: pointer;
+          font-size: 10px;
+          font-weight: 700;
+        }
+
+        .tab-button.active {
+          background: #fff;
+          color: #087f8c;
+          box-shadow: 0 1px 4px rgba(20,40,70,.08);
+        }
+
+        .month-summary {
+          margin: 0 23px 17px;
+          padding: 15px 17px;
+          background: #f5fbfb;
+          border: 1px solid #dff0f1;
+          border-radius: 11px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+        }
+
+        .month-summary strong {
+          display: block;
+          color: #087f8c;
+          font-size: 12px;
+        }
+
+        .month-summary span {
+          display: block;
+          margin-top: 4px;
+          color: #7b8798;
+          font-size: 10px;
+        }
+
+        .payment-badge {
+          padding: 7px 11px;
+          border-radius: 20px;
+          background: #fff5e6;
+          color: #b76d00;
+          font-size: 10px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .payment-badge.paid {
+          background: #eaf9f1;
+          color: #087f4f;
+        }
+
+        .search-area {
+          padding: 0 23px 17px;
+        }
+
+        .search-box {
+          height: 43px;
+          display: flex;
+          align-items: center;
+          background: #fafbfc;
+          border: 1px solid #e0e6eb;
+          border-radius: 9px;
+          padding: 0 12px;
+        }
+
+        .search-icon {
+          color: #98a2b3;
+          margin-right: 8px;
+        }
+
+        .search-input {
+          flex: 1;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: #344054;
+          font-size: 11px;
+        }
+
+        .clear {
+          border: 0;
+          background: transparent;
+          color: #98a2b3;
+          cursor: pointer;
+          font-size: 16px;
+        }
+
+        .table-wrapper {
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        table {
+          width: 100%;
+          min-width: 850px;
+          border-collapse: collapse;
+        }
+
+        th {
+          padding: 12px 17px;
+          background: #f8fafc;
+          border-top: 1px solid #edf1f4;
+          border-bottom: 1px solid #edf1f4;
+          text-align: left;
+          color: #7b8798;
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: .6px;
+          text-transform: uppercase;
+        }
+
+        td {
+          padding: 14px 17px;
+          border-bottom: 1px solid #f0f2f5;
+          vertical-align: middle;
+          font-size: 10px;
+        }
+
+        tbody tr:hover {
+          background: #fbfdfd;
+        }
+
+        .request-id {
+          color: #087f8c;
+          font-weight: 800;
+        }
+
+        .patient {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+        }
+
+        .patient-avatar {
+          width: 35px;
+          height: 35px;
+          border-radius: 9px;
+          background: #edf7f8;
+          color: #087f8c;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          flex-shrink: 0;
+        }
+
+        .patient-name {
+          margin: 0;
+          color: #344054;
+          font-weight: 750;
+        }
+
+        .patient-id {
+          margin: 3px 0 0;
+          color: #98a2b3;
+          font-size: 8px;
+        }
+
+        .tests {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+          max-width: 280px;
+        }
+
+        .test {
+          padding: 4px 7px;
+          background: #f4f6f8;
+          color: #667085;
+          border-radius: 5px;
+          font-size: 8px;
+        }
+
+        .more-tests {
+          padding: 4px 7px;
+          background: #e9f7f8;
+          color: #087f8c;
+          border-radius: 5px;
+          font-size: 8px;
+          font-weight: 800;
+        }
+
+        .status {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 9px;
+          border-radius: 20px;
+          font-size: 8px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .status-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: currentColor;
+        }
+
+        .status.pending {
+          background: #fff6e7;
+          color: #c77a00;
+        }
+
+        .status.accepted {
+          background: #edf5ff;
+          color: #0b5cab;
+        }
+
+        .status.collecting {
+          background: #f3efff;
+          color: #7357d9;
+        }
+
+        .status.processing {
+          background: #eef1ff;
+          color: #6654c7;
+        }
+
+        .status.transit {
+          background: #eaf8fc;
+          color: #087fa9;
+        }
+
+        .status.completed {
+          background: #eaf9f1;
+          color: #087f4f;
+        }
+
+        .open-button {
+          border: 0;
+          background: #e9f7f8;
+          color: #087f8c;
+          border-radius: 7px;
+          padding: 8px 10px;
+          cursor: pointer;
+          font-size: 9px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+
+        .open-button:hover {
+          background: #dff2f3;
+        }
+
+        /* ================= HISTORY ================= */
+
+        .history {
+          padding: 0 23px 23px;
+        }
+
+        .history-month {
+          border: 1px solid #e6ebef;
+          border-radius: 11px;
+          overflow: hidden;
+          margin-bottom: 10px;
+        }
+
+        .history-month-header {
+          padding: 13px 15px;
+          background: #f8fafc;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .history-month-header strong {
+          color: #344054;
+          font-size: 12px;
+        }
+
+        .history-month-header span {
+          color: #087f4f;
+          font-size: 9px;
+          font-weight: 800;
+        }
+
+        .history-row {
+          padding: 12px 15px;
+          border-top: 1px solid #edf1f4;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 15px;
+        }
+
+        .history-patient {
+          color: #344054;
+          font-size: 10px;
+          font-weight: 750;
+        }
+
+        .history-meta {
+          margin-top: 3px;
+          color: #98a2b3;
+          font-size: 8px;
+        }
+
+        /* ================= STATES ================= */
+
+        .loading,
+        .error-state,
+        .empty {
+          padding: 60px 20px;
+          text-align: center;
+          color: #98a2b3;
+          font-size: 11px;
+        }
+
+        .loading-icon {
+          width: 44px;
+          height: 44px;
+          margin: 0 auto 12px;
+          border-radius: 50%;
+          border: 3px solid #e5f2f3;
+          border-top-color: #087f8c;
+          animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .error-title,
+        .empty-title {
+          margin: 0 0 7px;
+          color: #344054;
+          font-size: 14px;
+        }
+
+        .error-message,
+        .empty-text {
+          margin: 0 auto 15px;
+          max-width: 500px;
+          color: #98a2b3;
+          line-height: 1.5;
+          font-size: 10px;
+        }
+
+        .retry-button {
+          border: 0;
+          background: #087f8c;
+          color: #fff;
+          padding: 9px 15px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
+        .footer {
+          max-width: 1180px;
+          margin: 17px auto 0;
+          display: flex;
+          justify-content: space-between;
+          color: #a0a9b5;
+          font-size: 8px;
+        }
+
+
+        @media (max-width: 1100px) {
+          .stats {
+            grid-template-columns: repeat(2, 1fr);
+          }
+
+          .main {
+            padding: 25px;
+          }
+        }
+
+        @media (max-width: 850px) {
+          .sidebar {
+            width: 75px;
+            padding: 20px 9px;
+          }
+
+          .main {
+            width: calc(100% - 75px);
+            margin-left: 75px;
+            padding: 20px 16px;
+          }
+
+          .logo {
+            width: 48px;
+          }
+
+          .menu-heading,
+          .nav-text,
+          .profile-details {
+            display: none;
+          }
+
+          .nav-button {
+            justify-content: center;
+            padding: 12px;
+          }
+
+          .profile {
+            justify-content: center;
+          }
+
+          .header {
+            flex-direction: column;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .stats {
+            grid-template-columns: 1fr;
+          }
+
+          .main {
+            padding: 16px 12px;
+          }
+
+          .title {
+            font-size: 25px;
+          }
+
+          .date {
+            display: none;
+          }
+
+          .work-header {
+            flex-direction: column;
+          }
+
+          .month-summary {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .view-tabs {
+            width: 100%;
+          }
+
+          .tab-button {
+            flex: 1;
+          }
+
+          .footer {
+            flex-direction: column;
+            gap: 5px;
+          }
+        }
+        /* ================= MOBILE REQUEST CARDS ================= */
+
+        .mobile-request-list {
+          display: none;
+        }
+
+        .mobile-request-card {
+          background: #fff;
+          border: 1px solid #e4e9ee;
+          border-radius: 14px;
+          margin: 0 14px 12px;
+          padding: 16px;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, .03);
+        }
+
+        .mobile-request-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+
+        .mobile-request-id {
+          color: #087f8c;
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        .mobile-patient {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 17px;
+        }
+
+        .mobile-patient-avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 10px;
+          background: #eaf8f9;
+          color: #087f8c;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          font-weight: 800;
+          flex-shrink: 0;
+        }
+
+        .mobile-patient-info {
+          min-width: 0;
+        }
+
+        .mobile-patient-name {
+          margin: 0;
+          color: #111827;
+          font-size: 12px;
+          font-weight: 750;
+          word-break: break-word;
+        }
+
+        .mobile-patient-id {
+          margin: 4px 0 0;
+          color: #9ca3af;
+          font-size: 9px;
+        }
+
+        .mobile-test-section {
+          margin-bottom: 15px;
+        }
+
+        .mobile-label {
+          margin: 0 0 7px;
+          color: #9ca3af;
+          font-size: 8px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: .5px;
+        }
+
+        .mobile-tests {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .mobile-test {
+          background: #f3f6f8;
+          color: #4b5563;
+          border-radius: 6px;
+          padding: 6px 8px;
+          font-size: 8px;
+          line-height: 1.2;
+        }
+
+        .mobile-request-meta {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          padding: 13px 0;
+          border-top: 1px solid #eef0f4;
+          border-bottom: 1px solid #eef0f4;
+        }
+
+        .mobile-meta-item {
+          min-width: 0;
+        }
+
+        .mobile-meta-value {
+          color: #374151;
+          font-size: 9px;
+          font-weight: 650;
+          word-break: break-word;
+        }
+
+        .mobile-request-footer {
+          padding-top: 12px;
+        }
+
+        .mobile-open-button {
+          width: 100%;
+          border: 0;
+          background: #087f8c;
+          color: #fff;
+          border-radius: 8px;
+          padding: 11px 12px;
+          font-size: 10px;
+          font-weight: 750;
+          cursor: pointer;
+        }
+
+        .mobile-open-button:hover {
+          background: #066d78;
+        }
+
+        @media (max-width: 600px) {
+          .nurse-dashboard {
+            display: block;
+            min-height: 100vh;
+          }
+
+          /* ================= MOBILE DRAWER ================= */
+
+          .sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: auto !important;
+            bottom: 0 !important;
+            width: min(300px, 86vw) !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            margin: 0 !important;
+            padding: 16px 14px 18px !important;
+            box-sizing: border-box !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: #ffffff !important;
+            border-right: 1px solid #e7edf3 !important;
+            border-top: 0 !important;
+            transform: translate3d(-110%, 0, 0) !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            transition: transform .25s ease, visibility 0s linear .25s !important;
+            box-shadow: 10px 0 35px rgba(15, 23, 42, .14) !important;
+            z-index: 1000 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .sidebar.mobile-menu-open {
+            transform: translate3d(0, 0, 0) !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            transition: transform .25s ease !important;
+          }
+
+          .sidebar > div:first-child {
+            width: 100%;
+            height: auto;
+            display: block;
+          }
+
+          .logo-container {
+            height: 74px;
+            padding: 0 8px 15px;
+            margin-bottom: 18px;
+          }
+
+          .logo {
+            width: 150px;
+            max-height: 62px;
+          }
+
+          .mobile-drawer-close {
+            display: flex;
+            position: absolute;
+            top: 18px;
+            right: 14px;
+            width: 34px;
+            height: 34px;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+            color: #475467;
+            border-radius: 9px;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            z-index: 2;
+          }
+
+          .mobile-drawer-close:hover {
+            background: #f5f7fa;
+          }
+
+          .menu-heading {
+            display: block;
+            padding: 0 11px 8px;
+            margin-top: 14px !important;
+            font-size: 9px;
+          }
+
+          .nav-text {
+            display: block;
+            max-width: none;
+            overflow: visible;
+            text-overflow: clip;
+            white-space: normal;
+            font-size: 13px;
+          }
+
+          .nav-button {
+            width: 100%;
+            height: 45px;
+            margin-bottom: 4px;
+            padding: 10px 12px;
+            justify-content: flex-start;
+            flex-direction: row;
+            gap: 13px;
+            border-radius: 10px;
+            text-align: left;
+          }
+
+          .nav-icon {
+            width: 22px;
+            height: 22px;
+            font-size: 16px;
+          }
+
+          .sidebar-spacer {
+            display: block;
+            flex: 1;
+            min-height: 15px;
+          }
+
+          .profile {
+            display: flex;
+            justify-content: flex-start;
+            padding: 14px 7px 4px;
+          }
+
+          .profile-details {
+            display: block;
+          }
+
+          .mobile-menu-overlay {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            padding: 0;
+            margin: 0;
+            background: rgba(15, 23, 42, .38);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity .25s ease, visibility .25s ease;
+            z-index: 990;
+          }
+
+          .mobile-menu-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+          }
+
+          /* ================= MOBILE TOP BAR ================= */
+
+          .mobile-topbar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            height: 52px;
+            margin-bottom: 12px;
+          }
+
+          .mobile-menu-button {
+            width: 42px;
+            height: 42px;
+            border: 1px solid #e1e7ed;
+            background: #ffffff;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+          }
+
+          .mobile-menu-button span {
+            display: block;
+            width: 17px;
+            height: 2px;
+            border-radius: 2px;
+            background: #344054;
+          }
+
+          .mobile-brand {
+            min-width: 0;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+          }
+
+          .mobile-brand img {
+            width: 39px;
+            height: 39px;
+            object-fit: contain;
+          }
+
+          .mobile-brand div {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .mobile-brand strong {
+            color: #172033;
+            font-size: 12px;
+            line-height: 1.1;
+          }
+
+          .mobile-brand span {
+            color: #98a2b3;
+            font-size: 8px;
+            margin-top: 2px;
+          }
+
+          .mobile-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0b5cab, #08a7a1);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+          }
+
+          /* ================= MAIN ================= */
+
+          .main {
+            width: 100%;
+            margin-left: 0;
+            padding: 12px 12px 28px;
+          }
+
+          .header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            margin-bottom: 16px;
+          }
+
+          .breadcrumb {
+            font-size: 9px;
+          }
+
+          .title {
+            font-size: 24px;
+            line-height: 1.15;
+          }
+
+          .subtitle {
+            font-size: 11px;
+            line-height: 1.45;
+          }
+
+          .header-actions {
+            width: 100%;
+            justify-content: flex-end;
+          }
+
+          .date {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            align-items: center;
+          }
+
+          .stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 9px;
+          }
+
+          .stat-card {
+            min-height: 104px;
+            padding: 13px;
+          }
+
+          .stat-number {
+            font-size: 25px;
+          }
+
+          .stat-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 15px;
+          }
+
+          .welcome {
+            padding: 18px;
+          }
+
+          .work-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+          }
+
+          .view-tabs {
+            width: 100%;
+          }
+
+          .tab-button {
+            flex: 1;
+          }
+
+          .month-summary {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 9px;
+          }
+
+          .payment-badge {
+            width: 100%;
+            text-align: center;
+          }
+
+          .search-area {
+            padding-left: 14px;
+            padding-right: 14px;
+          }
+
+          .desktop-request-table {
+            display: none !important;
+          }
+
+          .mobile-request-list {
+            display: block;
+          }
+
+          .history {
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+
+          .history-row {
+            align-items: flex-start;
+            gap: 10px;
+          }
+
+          .footer {
+            flex-direction: column;
+            gap: 5px;
+            text-align: center;
+          }
+        }
+
+        @media (max-width: 380px) {
+          .main {
+            padding-left: 9px;
+            padding-right: 9px;
+          }
+
+          .title {
+            font-size: 22px;
+          }
+
+          .stats {
+            gap: 7px;
+          }
+
+          .stat-card {
+            min-height: 96px;
+            padding: 10px;
+          }
+
+          .stat-description {
+            display: none;
+          }
+
+          .stat-number {
+            font-size: 22px;
+          }
+
+          .mobile-request-card {
+            margin-left: 10px;
+            margin-right: 10px;
+            padding: 13px;
+          }
+
+          .mobile-request-meta {
+            gap: 8px;
+          }
+        }
+
+
+        /* =====================================================
+           FINAL MOBILE DRAWER OVERRIDES
+           These rules intentionally come last so they win over
+           all earlier tablet/mobile sidebar rules.
+        ===================================================== */
+
+        @media screen and (max-width: 900px) {
+          html,
+          body {
+            width: 100%;
+            min-width: 0;
+            overflow-x: hidden;
+          }
+
+          .nurse-dashboard {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+          }
+
+          .nurse-dashboard .main {
+            width: 100% !important;
+            margin-left: 0 !important;
+            padding: 12px !important;
+          }
+
+          /* Mobile sidebar: hidden until the React state adds the class */
+          .nurse-dashboard .sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: auto !important;
+            bottom: auto !important;
+            width: min(290px, 84vw) !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 16px 14px 20px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background: #ffffff !important;
+            border: 0 !important;
+            border-right: 1px solid #e5e7eb !important;
+            box-shadow: 14px 0 35px rgba(15,23,42,.16) !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            transform: translateX(-105%) !important;
+            opacity: 1 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            transition: transform .25s ease, visibility 0s linear .25s !important;
+            z-index: 9999 !important;
+          }
+
+          .nurse-dashboard .sidebar.mobile-menu-open {
+            transform: translateX(0) !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            transition: transform .25s ease !important;
+          }
+
+          .nurse-dashboard .sidebar > div:first-child {
+            width: 100% !important;
+            height: auto !important;
+            display: block !important;
+            flex: 0 0 auto !important;
+          }
+
+          .nurse-dashboard .mobile-drawer-close {
+            display: flex !important;
+            position: absolute !important;
+            top: 14px !important;
+            right: 12px !important;
+            width: 36px !important;
+            height: 36px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: 1px solid #e5e7eb !important;
+            background: #fff !important;
+            border-radius: 9px !important;
+            color: #344054 !important;
+            font-size: 22px !important;
+            cursor: pointer !important;
+            z-index: 10000 !important;
+          }
+
+          .nurse-dashboard .logo-container {
+            height: 72px !important;
+            margin-bottom: 16px !important;
+            padding: 0 45px 12px 8px !important;
+          }
+
+          .nurse-dashboard .logo {
+            width: 145px !important;
+            max-height: 58px !important;
+          }
+
+          .nurse-dashboard .menu-heading {
+            display: block !important;
+            padding: 0 10px 8px !important;
+            margin-top: 14px !important;
+            font-size: 9px !important;
+          }
+
+          .nurse-dashboard .nav-button {
+            display: flex !important;
+            width: 100% !important;
+            height: 44px !important;
+            padding: 9px 11px !important;
+            margin: 0 0 3px !important;
+            flex-direction: row !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            gap: 12px !important;
+            border-radius: 9px !important;
+          }
+
+          .nurse-dashboard .nav-text {
+            display: block !important;
+            font-size: 12px !important;
+            white-space: normal !important;
+          }
+
+          .nurse-dashboard .nav-icon {
+            display: flex !important;
+            width: 22px !important;
+            height: 22px !important;
+            flex-shrink: 0 !important;
+          }
+
+          .nurse-dashboard .sidebar-spacer {
+            display: block !important;
+            flex: 1 1 auto !important;
+            min-height: 18px !important;
+          }
+
+          .nurse-dashboard .profile {
+            display: flex !important;
+            padding: 13px 6px 3px !important;
+            flex-shrink: 0 !important;
+          }
+
+          .nurse-dashboard .profile-details {
+            display: block !important;
+          }
+
+          /* Overlay must be behind drawer but above page */
+          .nurse-dashboard .mobile-menu-overlay {
+            display: block !important;
+            position: fixed !important;
+            inset: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            background: rgba(15,23,42,.42) !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            z-index: 9998 !important;
+            transition: opacity .25s ease, visibility 0s linear .25s !important;
+          }
+
+          .nurse-dashboard .mobile-menu-overlay.show {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            transition: opacity .25s ease !important;
+          }
+
+          .nurse-dashboard .mobile-topbar {
+            display: flex !important;
+            position: relative !important;
+            width: 100% !important;
+            height: 52px !important;
+            margin: 0 0 12px !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            z-index: 1 !important;
+          }
+
+          .nurse-dashboard .mobile-menu-button {
+            display: flex !important;
+            width: 42px !important;
+            height: 42px !important;
+            flex-shrink: 0 !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-direction: column !important;
+            gap: 4px !important;
+            border: 1px solid #e1e7ed !important;
+            background: #fff !important;
+            border-radius: 10px !important;
+            cursor: pointer !important;
+          }
+
+          .nurse-dashboard .mobile-brand {
+            display: flex !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+
+          .nurse-dashboard .mobile-avatar {
+            display: flex !important;
+            width: 38px !important;
+            height: 38px !important;
+            flex-shrink: 0 !important;
+          }
+
+          /* Request cards also switch at tablet/mobile widths */
+          .nurse-dashboard .desktop-request-table {
+            display: none !important;
+          }
+
+          .nurse-dashboard .mobile-request-list {
+            display: block !important;
+          }
+        }
+
+      `}</style>}
+
+      {/* ===================================================
+          SIDEBAR
+      =================================================== */}
+
+      <aside className={`sidebar ${mobileMenuOpen ? "mobile-menu-open" : ""}`}>
+        <div>
+          <div className="logo-container">
+            <img
+              src="/samplogy-logo.png"
+              alt="Samplogy Sample Delivery"
+              className="logo"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="mobile-drawer-close"
+            aria-label="Close navigation menu"
+            onClick={closeMobileMenu}
+          >
+            ×
+          </button>
+
+          <div className="menu-heading">
+            WORKSPACE
+          </div>
+
+          <button
+            type="button"
+            className="nav-button active"
+            onClick={() => { closeMobileMenu(); navigate("/nurse"); }}
+          >
+            <span className="nav-icon">⌂</span>
+            <span className="nav-text">Dashboard</span>
+          </button>
+
+          <button
+            type="button"
+            className="nav-button"
+            onClick={() => { closeMobileMenu(); navigate("/register-patient"); }}
+          >
+            <span className="nav-icon">＋</span>
+            <span className="nav-text">Register Patient</span>
+          </button>
+
+          <button
+            type="button"
+            className="nav-button"
+            onClick={() => { closeMobileMenu(); navigate("/laboratory-request"); }}
+          >
+            <span className="nav-icon">◇</span>
+            <span className="nav-text">New Sample Request</span>
+          </button>
+
+          <button
+            type="button"
+            className="nav-button"
+            onClick={() => { closeMobileMenu(); navigate("/sample-tracking"); }}
+          >
+            <span className="nav-icon">↗</span>
+            <span className="nav-text">Sample Tracking</span>
+          </button>
+
+          <button
+            type="button"
+            className="nav-button"
+            onClick={() => { closeMobileMenu(); setView("history"); }}
+          >
+            <span className="nav-icon">▤</span>
+            <span className="nav-text">Laboratory Results</span>
+          </button>
+
+          <div
+            className="menu-heading"
+            style={{ marginTop: "20px" }}
+          >
+            HISTORY
+          </div>
+
+          <button
+            type="button"
+            className="nav-button"
+            onClick={() => { closeMobileMenu(); setView("history"); }}
+          >
+            <span className="nav-icon">▣</span>
+            <span className="nav-text">My Work History</span>
+          </button>
+
+          <div
+            className="menu-heading"
+            style={{ marginTop: "5px" }}
+          >
+            ACCOUNT
+          </div>
+ <button
+            type="button"
+            className="nav-button"
+            onClick={() => { closeMobileMenu(); handleSignOut(); }}
+          >
+            <span className="nav-icon">↪</span>
+            <span className="nav-text">Sign Out</span>
+          </button>
+
+          <button
+            type="button"
+            className="nav-button"
+            onClick={() => { closeMobileMenu(); navigate("/nurse-profile"); }}
+          >
+            <span className="nav-icon">○</span>
+            <span className="nav-text">My Profile</span>
+          </button>
+
+         
+        </div>
+
+        <div className="sidebar-spacer" />
+
+        <div className="profile">
+          <div className="avatar">
+            {nurseName.charAt(0).toUpperCase()}
+          </div>
+
+          <div className="profile-details">
+            <p className="profile-name">
+              {nurseName}
+            </p>
+
+            <p className="profile-role">
+              Nurse Portal
+            </p>
+          </div>
+        </div>
+      </aside>
+
+      <button
+        type="button"
+        className={`mobile-menu-overlay ${mobileMenuOpen ? "show" : ""}`}
+        aria-label="Close navigation menu"
+        onClick={closeMobileMenu}
+      />
+
+      {/* ===================================================
+          MAIN
+      =================================================== */}
+
+     <div className="nurse-dashboard-page">
+  <div className="mobile-topbar">
+          <button
+            type="button"
+            className="mobile-menu-button"
+            aria-label="Open navigation menu"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+
+          <div className="mobile-brand">
+            <img
+              src="/samplogy-logo.png"
+              alt="Samplogy"
+            />
+            <div>
+              <strong>Samplogy</strong>
+              <span>Nurse Portal</span>
+            </div>
+          </div>
+
+          <div className="mobile-avatar">
+            {nurseName.charAt(0).toUpperCase()}
+          </div>
+        </div>
+
         <header className="header">
           <div>
             <p className="breadcrumb">
