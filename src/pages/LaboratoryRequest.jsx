@@ -3882,7 +3882,8 @@ function LaboratoryRequest() {
       <header className="lr-header">
 
         <div className="lr-brand">
-         <img
+      <img
+  className="lr-logo"
   src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
   alt="Samplogy"
 />
