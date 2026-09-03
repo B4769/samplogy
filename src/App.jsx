@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  BrowserRouter,
+  HashRouter,
   Navigate,
   Route,
   Routes,
@@ -193,7 +193,7 @@ function NurseProtectedPage({
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
 
       <Routes>
 
@@ -450,7 +450,7 @@ function App() {
 
       </Routes>
 
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
