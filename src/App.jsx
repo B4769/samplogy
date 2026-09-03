@@ -244,14 +244,14 @@ function App() {
             NURSE DASHBOARD
         ------------------------------------------------- */}
 
-        <Route
-          path="/nurse-dashboard"
-          element={
-            <RequireSupabaseSession>
-              <NurseDashboard />
-            </RequireSupabaseSession>
-          }
-        />
+    <Route
+  path="/nurse-dashboard"
+  element={
+    <NurseProtectedPage>
+      <NurseDashboard />
+    </NurseProtectedPage>
+  }
+/>
 
 
         {/* -------------------------------------------------
