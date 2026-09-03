@@ -142,9 +142,9 @@ function NurseSidebar({
 
           <div className="logo-container">
             <img
-  src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
-  alt="Samplogy"
-/>
+              src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+              alt="Samplogy"
+            />
           </div>
 
 
@@ -259,7 +259,7 @@ function NurseSidebar({
             className="nav-button"
             onClick={() => {
               onClose();
-              navigate("/nurse-profile");
+              navigate("/complete-profile");
             }}
           >
             <span className="nav-icon">
