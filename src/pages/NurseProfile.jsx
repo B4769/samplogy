@@ -13,17 +13,25 @@ function NurseProfile() {
 
   const loadProfile = useCallback(async () => {
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+      setError("");
 
-      if (userError) {
-        throw userError;
+      // Get the existing Supabase session.
+      // NurseProtectedPage has already confirmed that
+      // the user is authenticated.
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        throw sessionError;
       }
 
+      const user = session?.user;
+
       if (!user) {
-        navigate("/");
+        setError("Your session could not be restored. Please log in again.");
+        setLoading(false);
         return;
       }
 
@@ -60,15 +68,21 @@ function NurseProfile() {
 
         if (!cityError && city) {
           setCityName(city.name);
+        } else {
+          setCityName("—");
         }
+      } else {
+        setCityName("—");
       }
     } catch (err) {
       console.error("Nurse profile error:", err);
-      setError(err?.message || "Unable to load your profile.");
+      setError(
+        err?.message || "Unable to load your profile."
+      );
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -76,18 +90,23 @@ function NurseProfile() {
     const loadInitialProfile = async () => {
       try {
         const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
         if (cancelled) return;
 
-        if (userError) {
-          throw userError;
+        if (sessionError) {
+          throw sessionError;
         }
 
+        const user = session?.user;
+
         if (!user) {
-          navigate("/");
+          setError(
+            "Your session could not be restored. Please log in again."
+          );
+          setLoading(false);
           return;
         }
 
@@ -131,6 +150,7 @@ function NurseProfile() {
       } catch (err) {
         if (!cancelled) {
           console.error("Nurse profile error:", err);
+
           setError(
             err?.message || "Unable to load your profile."
           );
@@ -147,7 +167,7 @@ function NurseProfile() {
     return () => {
       cancelled = true;
     };
-  }, [navigate]);
+  }, []);
 
   const formatDate = (value) => {
     if (!value) return "—";
@@ -195,7 +215,6 @@ function NurseProfile() {
             type="button"
             onClick={() => {
               setLoading(true);
-              setError("");
               loadProfile();
             }}
           >

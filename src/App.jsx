@@ -37,6 +37,8 @@ import AdminLaboratoryWork from "./pages/AdminLaboratoryWork";
 
 import CompleteProfile from "./pages/CompleteProfile";
 
+import NurseProfile from "./pages/NurseProfile";
+
 // =====================================================
 // NURSE LAYOUT
 // =====================================================
@@ -233,6 +235,14 @@ function App() {
             </RequireSupabaseSession>
           }
         />
+        <Route
+           path="/nurse-profile"
+           element={
+    <NurseProtectedPage>
+      <NurseProfile />
+    </NurseProtectedPage>
+  }
+/>
 
 
         {/* =================================================

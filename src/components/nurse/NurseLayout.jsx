@@ -231,17 +231,12 @@ function NurseLayout({ children, nurseName = "Nurse" }) {
             <span />
             <span />
           </button>
-
-          <div className="mobile-brand">
-            <img
-              src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
-              alt="Samplogy"
-            />
-            <div>
-              <strong>Samplogy</strong>
-              <span>Nurse Portal</span>
-            </div>
-          </div>
+<div className="mobile-brand">
+  <img
+    src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+    alt="Samplogy"
+  />
+</div>
 
           <div className="mobile-avatar">
             {nurseName?.charAt(0).toUpperCase() || "N"}
