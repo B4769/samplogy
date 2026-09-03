@@ -106,7 +106,7 @@ function NurseSidebar({
           </MenuItem>
 
           <div className="menu-heading">ACCOUNT</div>
-          <MenuItem path="/complete-profile" icon="○" onClose={onClose}>
+          <MenuItem path="/nurse-profile" icon="○" onClose={onClose}>
             My Profile
           </MenuItem>
 
