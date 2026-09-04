@@ -16,12 +16,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+   signingConfigs {
+    release {
+        storeFile file("C:/Users/Biruktawit/Desktop/Samplogy-keystore.jks")
+        storePassword System.getenv("SAMPLLOGY_KEYSTORE_PASSWORD")
+        keyAlias "samplogy"
+        keyPassword System.getenv("SAMPLLOGY_KEY_PASSWORD")
     }
+}
+
+buildTypes {
+    release {
+        minifyEnabled false
+        signingConfig signingConfigs.release
+        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    }
+}
 }
 
 repositories {

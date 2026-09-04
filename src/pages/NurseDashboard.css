@@ -1319,23 +1319,4 @@ th {
    PHONE SIZE
 ========================================================= */
 
-@media screen and (max-width: 600px) {
 
-  .nurse-layout .sidebar {
-    width: min(300px, 86vw) !important;
-  }
-
-  .nurse-layout .nav-text {
-    display: block !important;
-    font-size: 13px !important;
-  }
-
-  .nurse-layout .nav-button {
-    height: 45px !important;
-    padding: 10px 12px !important;
-  }
-
-  .nurse-layout .menu-heading {
-    font-size: 9px !important;
-  }
-}
