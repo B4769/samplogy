@@ -874,21 +874,21 @@ function LabDashboard() {
           z-index: 20;
         }
 
-        .logo-container {
-          height: 76px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          border-bottom: 1px solid #edf1f4;
-          margin-bottom: 23px;
-          padding-bottom: 18px;
-        }
+       .logo-container {
+  height: 105px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid #edf1f4;
+  margin-bottom: 23px;
+  padding: 8px 0;
+}
 
-        .logo {
-          width: 180px;
-          max-height: 65px;
-          object-fit: contain;
-        }
+.logo {
+  width: 185px;
+  height: 82px;
+  object-fit: contain;
+}
 
         .menu-title {
           padding: 0 11px 10px;
@@ -1808,11 +1808,11 @@ function LabDashboard() {
 
           <div className="logo-container">
 
-            <img
+   <img
+  className="logo"
   src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
   alt="Samplogy"
 />
-
           </div>
 
           <div className="menu-title">
