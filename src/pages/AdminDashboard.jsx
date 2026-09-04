@@ -777,6 +777,19 @@ function AdminDashboard() {
     }, 300);
   };
 
+  const scrollToSection = (sectionId) => {
+    const section = document.getElementById(sectionId);
+
+    if (!section) {
+      return;
+    }
+
+    section.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem("currentUser");
@@ -963,13 +976,7 @@ function AdminDashboard() {
             icon="💰"
             label="Nurse Payments"
             onClick={() =>
-              document
-                .getElementById(
-                  "nurse-payments"
-                )
-                ?.scrollIntoView({
-                  behavior: "smooth",
-                })
+              scrollToSection("nurse-payments")
             }
           />
 
@@ -981,6 +988,9 @@ function AdminDashboard() {
           <NavButton
             icon="📄"
             label="Reports"
+            onClick={() =>
+              scrollToSection("admin-reports")
+            }
           />
         </nav>
 
@@ -1406,7 +1416,77 @@ function AdminDashboard() {
           </div>
         </section>
 
-        <section style={styles.requestCard}>
+        <section
+          id="admin-nurses"
+          style={styles.requestCard}
+        >
+          <div style={styles.sectionHeader}>
+            <div>
+              <h2 style={styles.sectionTitle}>Nurses</h2>
+              <p style={styles.sectionSubtitle}>
+                Nurses registered in the Samplogy system.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Name</th>
+                  <th style={styles.th}>Username</th>
+                  <th style={styles.th}>Status</th>
+                  <th style={styles.th}>Requests</th>
+                </tr>
+              </thead>
+              <tbody>
+                {nurses.map((nurse) => {
+                  const nurseRequestCount = requests.filter(
+                    (request) =>
+                      request.requested_by === nurse.id
+                  ).length;
+
+                  return (
+                    <tr key={nurse.id}>
+                      <td style={styles.td}>
+                        {nurse.full_name || "-"}
+                      </td>
+                      <td style={styles.td}>
+                        {nurse.username || "-"}
+                      </td>
+                      <td style={styles.td}>
+                        {nurse.status || "-"}
+                      </td>
+                      <td style={styles.td}>
+                        {nurseRequestCount}
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {nurses.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      style={{
+                        ...styles.td,
+                        textAlign: "center",
+                        padding: "30px",
+                      }}
+                    >
+                      No nurses found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section
+          id="admin-laboratory-requests"
+          style={styles.requestCard}
+        >
           <div style={styles.sectionHeader}>
             <div>
               <h2 style={styles.sectionTitle}>
@@ -1943,6 +2023,91 @@ function AdminDashboard() {
               </table>
             </div>
           )}
+        </section>
+
+        <section
+          id="admin-reports"
+          style={styles.historyCard}
+        >
+          <div style={styles.sectionHeader}>
+            <div>
+              <h2 style={styles.sectionTitle}>Reports</h2>
+              <p style={styles.sectionSubtitle}>
+                Overview of current laboratory activity and
+                nurse payments.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              style={styles.primaryButton}
+              onClick={printMonthlyPayments}
+              disabled={monthlyPaymentRows.length === 0}
+            >
+              🖨️ Print Nurse Payment Report
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns:
+                "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: "14px",
+            }}
+          >
+            <div style={styles.statCard}>
+              <div>
+                <p style={styles.statLabel}>Total Requests</p>
+                <h2 style={styles.statValue}>{totalRequests}</h2>
+                <span style={styles.statInfo}>
+                  All laboratory requests
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.statCard}>
+              <div>
+                <p style={styles.statLabel}>Completed</p>
+                <h2 style={styles.statValue}>{completedRequests}</h2>
+                <span style={styles.statInfo}>
+                  Completed requests
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.statCard}>
+              <div>
+                <p style={styles.statLabel}>Pending</p>
+                <h2 style={styles.statValue}>{pendingRequests}</h2>
+                <span style={styles.statInfo}>
+                  Waiting for processing
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.statCard}>
+              <div>
+                <p style={styles.statLabel}>Nurses</p>
+                <h2 style={styles.statValue}>{nurses.length}</h2>
+                <span style={styles.statInfo}>
+                  Active nurse accounts
+                </span>
+              </div>
+            </div>
+
+            <div style={styles.statCard}>
+              <div>
+                <p style={styles.statLabel}>Monthly Payable</p>
+                <h2 style={styles.statValue}>
+                  {monthlyTotalAmount.toLocaleString()} ETB
+                </h2>
+                <span style={styles.statInfo}>
+                  {monthlyTotalRequests} completed unpaid requests
+                </span>
+              </div>
+            </div>
+          </div>
         </section>
 
         <footer style={styles.footer}>
