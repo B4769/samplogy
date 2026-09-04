@@ -885,11 +885,12 @@ function AdminDashboard() {
 
       <div className="admin-dashboard-root" style={styles.page}>
       <aside style={styles.sidebar}>
-        <div style={styles.logoArea}>
-          <img
-  src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
-  alt="Samplogy"
-/>
+       <div style={styles.logoArea}>
+  <img
+    style={styles.logoImage}
+    src={`${import.meta.env.BASE_URL}samplogy-logo.png`}
+    alt="Samplogy"
+  />
           <div>
             <h2 style={styles.logoTitle}>
               Samplogy
@@ -907,21 +908,28 @@ function AdminDashboard() {
             label="Dashboard"
           />
 
-          <NavButton
-            icon="👤"
-            label="Patients"
-            onClick={() =>
-              navigate("/register-patient")
-            }
-          />
+         <NavButton
+  icon="👤"
+  label="Patients"
+  onClick={() =>
+    document
+      .getElementById("admin-patients")
+      ?.scrollIntoView({
+        behavior: "smooth",
+      })
+  }
+/>
 
           <NavButton
             icon="🧪"
             label="Laboratory Requests"
-            onClick={() =>
-              navigate("/laboratory")
-            }
-          />
+           onClick={() =>
+  document
+    .getElementById("admin-laboratory-requests")
+    ?.scrollIntoView({
+      behavior: "smooth",
+    })
+} />
 
           <NavButton
             icon="🔬"
@@ -931,13 +939,17 @@ function AdminDashboard() {
             }
           />
 
-          <NavButton
-            icon="👩‍⚕️"
-            label="Nurses"
-            onClick={() =>
-              navigate("/nurse")
-            }
-          />
+         <NavButton
+  icon="👩‍⚕️"
+  label="Nurses"
+  onClick={() =>
+    document
+      .getElementById("admin-nurses")
+      ?.scrollIntoView({
+        behavior: "smooth",
+      })
+  }
+/>
 
           <NavButton
             icon="👥"
@@ -1323,6 +1335,75 @@ function AdminDashboard() {
               </div>
             </>
           )}
+        </section>
+
+        <section
+          id="admin-patients"
+          style={styles.requestCard}
+        >
+          <div style={styles.sectionHeader}>
+            <div>
+              <h2 style={styles.sectionTitle}>
+                Patients
+              </h2>
+              <p style={styles.sectionSubtitle}>
+                Patients registered in the Samplogy system.
+              </p>
+            </div>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Patient ID</th>
+                  <th style={styles.th}>Name</th>
+                  <th style={styles.th}>Gender</th>
+                  <th style={styles.th}>Phone</th>
+                  <th style={styles.th}>City</th>
+                  <th style={styles.th}>Region</th>
+                  <th style={styles.th}>Facility</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from(
+                  new Map(
+                    requests
+                      .filter((request) => request.patient)
+                      .map((request) => [
+                        request.patient.id,
+                        request.patient,
+                      ])
+                  ).values()
+                ).map((patient) => (
+                  <tr key={patient.id}>
+                    <td style={styles.td}>{patient.patient_id || "-"}</td>
+                    <td style={styles.td}>{patient.full_name || "-"}</td>
+                    <td style={styles.td}>{patient.gender || "-"}</td>
+                    <td style={styles.td}>{patient.phone || "-"}</td>
+                    <td style={styles.td}>{patient.city || "-"}</td>
+                    <td style={styles.td}>{patient.region || "-"}</td>
+                    <td style={styles.td}>{patient.facility || "-"}</td>
+                  </tr>
+                ))}
+
+                {requests.filter((request) => request.patient).length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      style={{
+                        ...styles.td,
+                        textAlign: "center",
+                        padding: "30px",
+                      }}
+                    >
+                      No patients found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section style={styles.requestCard}>
@@ -2179,19 +2260,23 @@ const styles = {
       "Inter, Arial, Helvetica, sans-serif",
   },
 
-  sidebar: {
-    width: "250px",
-    backgroundColor: "#fff",
-    borderRight: "1px solid #e5e7eb",
-    display: "flex",
-    flexDirection: "column",
-    padding: "24px 16px",
-    position: "fixed",
-    inset: "0 auto 0 0",
-    boxSizing: "border-box",
-    zIndex: 20,
-  },
-
+ sidebar: {
+  width: "250px",
+  height: "100vh",
+  backgroundColor: "#fff",
+  borderRight: "1px solid #e5e7eb",
+  display: "flex",
+  flexDirection: "column",
+  padding: "24px 16px",
+  position: "fixed",
+  top: 0,
+  left: 0,
+  bottom: 0,
+  boxSizing: "border-box",
+  zIndex: 20,
+  overflowY: "auto",
+  overflowX: "hidden",
+},
   logoArea: {
     display: "flex",
     alignItems: "center",
@@ -2218,11 +2303,12 @@ const styles = {
     fontSize: "10px",
   },
 
-  navigation: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-  },
+navigation: {
+  display: "flex",
+  flexDirection: "column",
+  gap: "5px",
+  flexShrink: 0,
+},
 
   navButton: {
     width: "100%",
@@ -2250,9 +2336,11 @@ const styles = {
     textAlign: "center",
   },
 
-  sidebarBottom: {
-    marginTop: "auto",
-  },
+ sidebarBottom: {
+  marginTop: "auto",
+  paddingTop: "16px",
+  flexShrink: 0,
+},
 
   logoutButton: {
     width: "100%",
